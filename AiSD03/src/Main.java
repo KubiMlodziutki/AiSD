@@ -120,6 +120,10 @@ public class Main {
 				System.out.println(doc[currentDocNo].link.remove(new Link(word[1])));
 				continue;
 			}
+			if (word[0].equalsIgnoreCase("remeven") && word.length == 1) {
+				doc[currentDocNo].link.removeEven();
+				continue;
+			}
 			// addl <indexOfListArray>
 			if (word[0].equalsIgnoreCase("addl") && word.length == 2) {
 				int number = Integer.parseInt(word[1]);

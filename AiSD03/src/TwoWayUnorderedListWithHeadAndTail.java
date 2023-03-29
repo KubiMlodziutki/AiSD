@@ -422,4 +422,33 @@ public class TwoWayUnorderedListWithHeadAndTail<E> implements IList<E> {
     other.tail = null;
     
   }
+  public void removeEven(){
+    if (head == null){
+      return;
+    }
+    if (size == 1){
+      head = null;
+      tail = null;
+      size = 0;
+      return;
+    }
+    Element current = head.next;
+    current.prev = null;
+    head = current;
+    size--;
+
+    while (current.next != null) {
+      if (current.next.next != null) {
+        current.next = current.next.next;
+        current.next.prev = current;
+        current = current.next;
+        size--;
+      }
+      else {
+        current.next = null;
+        size--;
+      }
+    }
+    tail = current;
+  }
 }
