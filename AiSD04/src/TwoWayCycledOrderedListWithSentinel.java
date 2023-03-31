@@ -153,13 +153,6 @@ public class TwoWayCycledOrderedListWithSentinel<E> implements IList<E>{
             }
             current = current.next;
         }
-        if (current == sentinel){
-            Element toAdd = new Element(e, sentinel, sentinel.prev);
-            current.prev.next = toAdd;
-            current.prev = toAdd;
-            size++;
-            return true;
-        }
         Element toAddBetween = new Element(e, current, current.prev);
         current.prev.next = toAddBetween;
         current.prev = toAddBetween;
@@ -269,21 +262,20 @@ public class TwoWayCycledOrderedListWithSentinel<E> implements IList<E>{
         if (index < 0 || index > size - 1){
             throw new NoSuchElementException();
         }
-        if (index == 0){
+        /*if (index == 0){
             Element toRemove = sentinel.next;
             sentinel.next = toRemove.next;
             toRemove.next.prev = sentinel;
             size--;
             return toRemove.object;
-        }
+        }*/
 
         Element current = sentinel.next;
         for (int i = 0; i < index; i++){
             current = current.next;
         }
-        Element beforeRemoval = current.prev;
-        beforeRemoval.next = current.next;
-        current.next.prev = beforeRemoval;
+        current.prev.next = current.next;
+        current.next.prev = current.prev;
         size--;
         return current.object;
     }
@@ -295,12 +287,12 @@ public class TwoWayCycledOrderedListWithSentinel<E> implements IList<E>{
             return false;
         }
         Element current = sentinel.next;
-        if (current.object.equals(e)){
+        /*if (current.object.equals(e)){
             current.next.prev = sentinel;
             sentinel.next = current.next;
             size--;
             return true;
-        }
+        }*/
         while (current != sentinel && !current.object.equals(e)){
             current = current.next;
         }
@@ -343,7 +335,7 @@ public class TwoWayCycledOrderedListWithSentinel<E> implements IList<E>{
                 otherCurrent.prev = current.prev;
                 otherCurrent.next = current;
                 current.prev = otherCurrent;
-                this.size++;
+                size++;
                 other.size--;
                 otherCurrent = otherCurrentNext;
                 continue;
@@ -352,18 +344,13 @@ public class TwoWayCycledOrderedListWithSentinel<E> implements IList<E>{
         }
         if (current == sentinel) {
             current = current.prev;
-            while (otherCurrent != other.sentinel) {
-                Element otherCurrentNext = otherCurrent.next;
-                otherCurrent.prev.next = otherCurrent.next;
-                otherCurrent.next.prev = otherCurrent.prev;
-                current.next = otherCurrent;
-                otherCurrent.prev = current;
-                otherCurrent.next = sentinel;
-                this.size++;
-                other.size--;
-                current = current.next;
-                otherCurrent = otherCurrentNext;
-            }
+            Element secondOtherCurrent = other.sentinel.next;
+            current.next = secondOtherCurrent;
+            secondOtherCurrent.prev = current;
+            other.sentinel.prev.next = sentinel;
+            sentinel.prev = other.sentinel.prev;
+            size += other.size();
+            other.clear();
         }
     }
 
@@ -384,27 +371,7 @@ public class TwoWayCycledOrderedListWithSentinel<E> implements IList<E>{
         }
     }
 
-    /*public void removeEven(){
-        if (isEmpty()){
-            return;
-        }
-        if (size == 1){
-            clear();
-            return;
-        }
-        int evenIterator = 0;
-        Element current = sentinel.next;
-        while (current != sentinel){
-            if (evenIterator % 2 == 0){
-                current.prev.next = current.next;
-                current.next.prev = current.prev;
-                size--;
-            }
-            evenIterator++;
-            current = current.next;
-        }
 
-    }*/
+
 
 }
-
