@@ -1,62 +1,138 @@
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.ListIterator;
 import java.util.Scanner;
 
 public class Document{
     public String name;
-    public OneWayLinkedList<Link> links;
+    public TwoWayCycledOrderedListWithSentinel<Link> link;
     public Document(String name, Scanner scan) {
-        // TODO
-        links = new OneWayLinkedList<>();
+        this.name=name.toLowerCase();
+        link=new TwoWayCycledOrderedListWithSentinel<Link>();
         load(scan);
     }
     public void load(Scanner scan) {
-        //TODO
-        String line = scan.nextLine();
-        while (!line.equals("eod")){
-            String[] tokens = line.split("\\s+");
-            for (String writtenLink : tokens) {
-                if(correctLink(writtenLink)){
-                    String [] readyToTrim = writtenLink.split("=");
-                    System.out.println(readyToTrim[1]);
-                    links.add(new Link(readyToTrim[1]));
+        String line;
+        while (!(line = scan.nextLine()).equals("eod")) {
+            char[] chars = new char[5];
+            for (int i = 0; i < line.length(); i++) {
+                chars[0] = chars[1];
+                chars[1] = chars[2];
+                chars[2] = chars[3];
+                chars[3] = chars[4];
+                chars[4] = line.charAt(i);
+                String charSTR = new String(chars);
+                if (charSTR.equalsIgnoreCase("link=")) {
+                    StringBuilder builder = new StringBuilder();
+                    i += 1;
+                    while(i < line.length() && !Character.isWhitespace(line.charAt(i)) && line.charAt(i) != '(') {
+                        builder.append(line.charAt(i));
+                        i++;
+                    }
+                    int weight = -1;
+                    if (i < line.length() && line.charAt(i) == '(') {
+                        StringBuilder weightBuilder = new StringBuilder();
+                        i++;
+
+                        while (i < line.length() && Character.isDigit(line.charAt(i))) {
+                            weightBuilder.append(line.charAt(i));
+                            i++;
+                        }
+                        if (line.charAt(i) != ')') {
+                            weight = -2;
+                        }
+                        if (line.charAt(i) == ')') {
+                            String weightString = weightBuilder.toString();
+                            if (weightString.length() == 0) {
+                                weight = -2;
+                            }
+                            boolean onlyDigits = true;
+                            for (int j = 0; j < weightString.length(); j++) {
+                                if (!Character.isDigit(weightString.charAt(j))) {
+                                    onlyDigits = false;
+                                }
+                            }
+                            if (weightString.length() > 0 && onlyDigits) {
+                                weight = Integer.parseInt(weightString);
+                            }
+                        }
+                    }
+                    String linkString = builder.toString();
+                    if (correctLink(linkString)) {
+                        linkString = linkString.toLowerCase();
+                        if (weight == -1) {
+                            link.add(createLink(linkString));
+                        } else if (weight >= 0)
+                            link.add(createLink(linkString, weight));
+                    }
                 }
-
             }
-            line = scan.nextLine();
         }
-
     }
+
+    public static boolean isCorrectId(String id) {
+        if (!Character.isLetter(id.charAt(0))){
+            return false;
+        }
+        return true;
+    }
+
     // accepted only small letters, capitalic letter, digits nad '_' (but not on the begin)
     private static boolean correctLink(String link) {
-        boolean isCorrect = true;
-        String [] allowed = {"q", "w", "e","r", "t", "y","u", "i", "o","p", "l", "k","j", "h", "g",
-                "f", "d", "s","a", "z", "x","c", "v", "b","n", "m", "1","2", "3", "4","5", "6", "7","8", "9", "0","_"};
-        ArrayList<String> allowedInArrayList= new ArrayList<>(List.of(allowed));
-        if (link.charAt(0) == 'l' && link.charAt(1) == 'i' && link.charAt(2) == 'n'
-                && link.charAt(3) == 'k' && link.charAt(4) == '=' && link.charAt(5) != '_' && link.charAt(5) != '0'
-                && link.charAt(5) != '1' && link.charAt(5) != '2' && link.charAt(5) != '3' && link.charAt(5) != '4'
-                && link.charAt(5) != '5' && link.charAt(5) != '6' && link.charAt(5) != '7' && link.charAt(5) != '8'
-                && link.charAt(5) != '9') {
-            for (int i = 5; i < link.length(); i++){
-                String atIndex = String.valueOf(link.charAt(i));
-                if (!allowedInArrayList.contains(atIndex)) {
-                    isCorrect = false;
-                    break;
-                }
+        if (link.length() == 0 || !Character.isLetter(link.charAt(0)) || link.charAt(0) == '_') {
+            return false;
+        }
+        for (int i = 1; i < link.length(); i++) {
+            boolean isCorrect = Character.isLetterOrDigit(link.charAt(i));
+            if (!isCorrect) {
+                return false;
             }
         }
-        else{
-            isCorrect = false;
-        }
-        return isCorrect;
+        return true;
+    }
+    private static Link createLink(String link) {
+        return new Link(link);
+    }
+    private static Link createLink(String link, int weight) {
+        return new Link(link, weight);
     }
 
     @Override
     public String toString() {
-        return null;
+        String retStr="Document: "+name;
+        if (link.size == 0){
+            return retStr;
+        }
+        StringBuilder builder = new StringBuilder(retStr);
+        ListIterator<Link> iterate = link.listIterator();
+        int i = 0;
+        while(iterate.hasNext()) {
+            if (i % 10 == 0) {
+                builder.append("\n").append(iterate.next()).append(" ");
+            } else {
+                builder.append(iterate.next()).append(" ");
+            }
+            i++;
+        }
+        return builder.substring(0, builder.length()-1);
     }
 
+    public String toStringReverse() {
+        String retStr="Document: "+name;
+        if (link.size == 0){
+            return retStr;
+        }
+        ListIterator<Link> iter=link.listIterator();
+        while(iter.hasNext())
+            iter.next();
+        StringBuilder builder = new StringBuilder(retStr);
+        int i = 0;
+        while(iter.hasPrevious()){
+            if (i % 10 == 0) {
+                builder.append("\n").append(iter.previous()).append(" ");
+            } else {
+                builder.append(iter.previous()).append(" ");
+            }
+            i++;
+        }
+        return builder.substring(0, builder.length()-1);
+    }
 }
